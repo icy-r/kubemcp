@@ -6,6 +6,8 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
+import { formatResponse } from './utils/formatter.js';
+import { config } from './config/settings.js';
 
 // Import all tool functions
 import * as deployments from './tools/deployments.js';
@@ -183,7 +185,7 @@ class KubeMcpServer {
       },
       {
         name: 'k8s_get_pod_logs',
-        description: 'Get logs from a pod',
+        description: 'Get logs from a pod with advanced filtering (optimized for token efficiency)',
         inputSchema: {
           type: 'object',
           properties: {
@@ -198,12 +200,33 @@ class KubeMcpServer {
             },
             tail: {
               type: 'number',
-              description: 'Number of lines to tail (optional)',
+              description: `Number of lines to tail (optional, default: ${config.logMaxLines})`,
             },
             previous: {
               type: 'boolean',
               description:
                 'Get logs from previous container instance (optional)',
+            },
+            sinceSeconds: {
+              type: 'number',
+              description: 'Only return logs newer than this many seconds (optional)',
+            },
+            sinceTime: {
+              type: 'string',
+              description: 'Only return logs after this ISO 8601 timestamp (optional)',
+            },
+            grep: {
+              type: 'string',
+              description: 'Filter logs with regex pattern (optional)',
+            },
+            severityFilter: {
+              type: 'string',
+              enum: ['ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE'],
+              description: 'Only show logs at or above this severity level (optional)',
+            },
+            maxBytes: {
+              type: 'number',
+              description: `Maximum response size in bytes (optional, default: ${config.logMaxBytes})`,
             },
           },
           required: ['name'],
@@ -219,6 +242,33 @@ class KubeMcpServer {
             namespace: {
               type: 'string',
               description: 'Namespace (optional)',
+            },
+          },
+          required: ['name'],
+        },
+      },
+      {
+        name: 'k8s_summarize_pod_logs',
+        description: 'Get log summary statistics instead of full logs (90%+ token reduction)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'Pod name' },
+            namespace: {
+              type: 'string',
+              description: 'Namespace (optional)',
+            },
+            container: {
+              type: 'string',
+              description: 'Container name (optional)',
+            },
+            tail: {
+              type: 'number',
+              description: 'Number of lines to analyze (optional)',
+            },
+            sinceSeconds: {
+              type: 'number',
+              description: 'Only analyze logs newer than this many seconds (optional)',
             },
           },
           required: ['name'],
@@ -658,13 +708,27 @@ class KubeMcpServer {
             args.namespace as string,
             args.container as string,
             args.tail as number,
-            args.previous as boolean
+            args.previous as boolean,
+            args.sinceSeconds as number,
+            args.sinceTime as string,
+            args.grep as string,
+            args.severityFilter as 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE',
+            args.maxBytes as number
           );
           break;
         case 'k8s_get_pod_status':
           result = await pods.getPodStatus(
             args.name as string,
             args.namespace as string
+          );
+          break;
+        case 'k8s_summarize_pod_logs':
+          result = await pods.summarizePodLogs(
+            args.name as string,
+            args.namespace as string,
+            args.container as string,
+            args.tail as number,
+            args.sinceSeconds as number
           );
           break;
 
@@ -809,7 +873,7 @@ class KubeMcpServer {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(result, null, 2),
+            text: formatResponse(result, config.responseFormat),
           },
         ],
       };

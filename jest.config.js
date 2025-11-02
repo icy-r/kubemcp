@@ -15,7 +15,7 @@ export default {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(execa)/)',
+    'node_modules/(?!(execa|@toon-format)/)',
   ],
   collectCoverageFrom: [
     'src/**/*.ts',

@@ -7,6 +7,10 @@ export interface ServerConfig {
   vmName: string;
   defaultNamespace: string;
   logLevel: 'error' | 'warn' | 'info' | 'debug';
+  responseFormat: 'json' | 'toon' | 'auto';
+  logMaxLines: number;
+  logMaxBytes: number;
+  logDefaultSeverity?: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE';
 }
 
 export interface ToolResult {
@@ -81,4 +85,40 @@ export interface SecretInfo {
   type: string;
   dataKeys: string[];
   age: string;
+}
+
+/**
+ * Log filtering options
+ */
+export interface LogFilterOptions {
+  severityFilter?: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE';
+  grep?: string;
+  maxBytes?: number;
+  maxLines?: number;
+}
+
+/**
+ * Log summary statistics
+ */
+export interface LogSummary {
+  totalLines: number;
+  estimatedBytes: number;
+  timeRange: {
+    earliest?: string;
+    latest?: string;
+  };
+  severityCounts: {
+    ERROR: number;
+    WARN: number;
+    INFO: number;
+    DEBUG: number;
+    TRACE: number;
+    UNKNOWN: number;
+  };
+  topErrors: Array<{
+    pattern: string;
+    count: number;
+    sample: string;
+  }>;
+  recentErrors: string[];
 }

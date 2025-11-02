@@ -4,7 +4,12 @@ import {
   ensureInitialized,
 } from '../utils/k8s-client.js';
 import { config } from '../config/settings.js';
-import type { PodInfo } from '../types/index.js';
+import {
+  processLogs,
+  summarizeLogs,
+  type LogSeverity,
+} from '../utils/log-processor.js';
+import type { PodInfo, LogSummary } from '../types/index.js';
 
 /**
  * List all pods in a namespace with optional label selector
@@ -92,20 +97,43 @@ export async function deletePod(
 }
 
 /**
- * Get pod logs
+ * Get pod logs with advanced filtering
  */
 export async function getPodLogs(
   name: string,
   namespace?: string,
   container?: string,
   tail?: number,
-  previous?: boolean
+  previous?: boolean,
+  sinceSeconds?: number,
+  sinceTime?: string,
+  grep?: string,
+  severityFilter?: LogSeverity,
+  maxBytes?: number
 ): Promise<string> {
   await ensureInitialized();
   const ns = namespace || config.defaultNamespace;
 
+  // Use configured defaults if not specified
+  const effectiveTail = tail !== undefined ? tail : config.logMaxLines;
+  const effectiveMaxBytes =
+    maxBytes !== undefined ? maxBytes : config.logMaxBytes;
+  const effectiveSeverity =
+    severityFilter || config.logDefaultSeverity;
+
   try {
     const coreApi = k8sClient.getCoreApi();
+
+    // Parse sinceTime if provided
+    let sinceSecondsValue = sinceSeconds;
+    if (sinceTime && !sinceSeconds) {
+      const timestamp = new Date(sinceTime);
+      const now = new Date();
+      sinceSecondsValue = Math.floor(
+        (now.getTime() - timestamp.getTime()) / 1000
+      );
+    }
+
     const response = await coreApi.readNamespacedPodLog(
       name,
       ns,
@@ -115,11 +143,30 @@ export async function getPodLogs(
       undefined,
       undefined,
       previous,
-      undefined,
-      tail,
+      sinceSecondsValue,
+      effectiveTail,
       undefined
     );
-    return response.body;
+
+    let logs = response.body;
+
+    // Apply filters if specified
+    if (effectiveSeverity || grep || effectiveMaxBytes) {
+      const processed = processLogs(logs, {
+        severityFilter: effectiveSeverity,
+        grep,
+        maxBytes: effectiveMaxBytes,
+      });
+
+      logs = processed.logs;
+
+      // Add metadata footer if logs were truncated
+      if (processed.metadata.truncated) {
+        logs += `\n\n[INFO] Logs truncated. Original size: ${processed.metadata.originalSize} bytes`;
+      }
+    }
+
+    return logs;
   } catch (error) {
     throw new Error(
       `Failed to get logs for pod '${name}': ${handleK8sError(error)}`
@@ -171,6 +218,49 @@ export async function getPodStatus(
   } catch (error) {
     throw new Error(
       `Failed to get pod status for '${name}': ${handleK8sError(error)}`
+    );
+  }
+}
+
+/**
+ * Summarize pod logs instead of returning full content
+ * Much more token-efficient for large log volumes
+ */
+export async function summarizePodLogs(
+  name: string,
+  namespace?: string,
+  container?: string,
+  tail?: number,
+  sinceSeconds?: number
+): Promise<LogSummary> {
+  await ensureInitialized();
+  const ns = namespace || config.defaultNamespace;
+
+  try {
+    const coreApi = k8sClient.getCoreApi();
+
+    // Get logs (use tail to limit if specified)
+    const response = await coreApi.readNamespacedPodLog(
+      name,
+      ns,
+      container,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      false,
+      sinceSeconds,
+      tail,
+      undefined
+    );
+
+    const logs = response.body;
+
+    // Generate summary
+    return summarizeLogs(logs);
+  } catch (error) {
+    throw new Error(
+      `Failed to summarize logs for pod '${name}': ${handleK8sError(error)}`
     );
   }
 }
