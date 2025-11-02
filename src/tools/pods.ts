@@ -118,8 +118,7 @@ export async function getPodLogs(
   const effectiveTail = tail !== undefined ? tail : config.logMaxLines;
   const effectiveMaxBytes =
     maxBytes !== undefined ? maxBytes : config.logMaxBytes;
-  const effectiveSeverity =
-    severityFilter || config.logDefaultSeverity;
+  const effectiveSeverity = severityFilter || config.logDefaultSeverity;
 
   try {
     const coreApi = k8sClient.getCoreApi();

@@ -97,10 +97,7 @@ export function detectSeverity(line: string): LogSeverity | 'UNKNOWN' {
  * Filter logs by severity level
  * Returns only lines matching the specified severity or higher priority
  */
-export function filterBySeverity(
-  logs: string,
-  severity: LogSeverity
-): string {
+export function filterBySeverity(logs: string, severity: LogSeverity): string {
   const lines = logs.split('\n');
   const severityPriority: Record<string, number> = {
     ERROR: 0,
@@ -131,7 +128,7 @@ export function grepLogs(logs: string, pattern: string): string {
     const lines = logs.split('\n');
     const matchedLines = lines.filter((line) => regex.test(line));
     return matchedLines.join('\n');
-  } catch (error) {
+  } catch {
     throw new Error(`Invalid grep pattern: ${pattern}`);
   }
 }
@@ -315,4 +312,3 @@ export function processLogs(
     },
   };
 }
-

@@ -31,7 +31,7 @@ function isUniformArray(data: unknown): boolean {
 
   // Get keys from first object
   const firstKeys = Object.keys(data[0] as object).sort();
-  
+
   if (firstKeys.length === 0) {
     return false;
   }
@@ -78,7 +78,7 @@ function shouldUseToon(data: unknown): boolean {
   if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
     const obj = data as Record<string, unknown>;
     const values = Object.values(obj);
-    
+
     // If it contains at least one uniform array, use TOON
     return values.some((value) => isUniformArray(value));
   }
@@ -110,7 +110,7 @@ export function formatResponse(
 
   // Determine format
   let useFormat: 'json' | 'toon' = 'json';
-  
+
   if (format === 'toon') {
     useFormat = 'toon';
   } else if (format === 'auto') {
@@ -166,4 +166,3 @@ export function getFormatInfo(data: unknown): {
     reason: 'Non-uniform or nested structure',
   };
 }
-

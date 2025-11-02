@@ -185,7 +185,8 @@ class KubeMcpServer {
       },
       {
         name: 'k8s_get_pod_logs',
-        description: 'Get logs from a pod with advanced filtering (optimized for token efficiency)',
+        description:
+          'Get logs from a pod with advanced filtering (optimized for token efficiency)',
         inputSchema: {
           type: 'object',
           properties: {
@@ -209,11 +210,13 @@ class KubeMcpServer {
             },
             sinceSeconds: {
               type: 'number',
-              description: 'Only return logs newer than this many seconds (optional)',
+              description:
+                'Only return logs newer than this many seconds (optional)',
             },
             sinceTime: {
               type: 'string',
-              description: 'Only return logs after this ISO 8601 timestamp (optional)',
+              description:
+                'Only return logs after this ISO 8601 timestamp (optional)',
             },
             grep: {
               type: 'string',
@@ -222,7 +225,8 @@ class KubeMcpServer {
             severityFilter: {
               type: 'string',
               enum: ['ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE'],
-              description: 'Only show logs at or above this severity level (optional)',
+              description:
+                'Only show logs at or above this severity level (optional)',
             },
             maxBytes: {
               type: 'number',
@@ -249,7 +253,8 @@ class KubeMcpServer {
       },
       {
         name: 'k8s_summarize_pod_logs',
-        description: 'Get log summary statistics instead of full logs (90%+ token reduction)',
+        description:
+          'Get log summary statistics instead of full logs (90%+ token reduction)',
         inputSchema: {
           type: 'object',
           properties: {
@@ -268,7 +273,8 @@ class KubeMcpServer {
             },
             sinceSeconds: {
               type: 'number',
-              description: 'Only analyze logs newer than this many seconds (optional)',
+              description:
+                'Only analyze logs newer than this many seconds (optional)',
             },
           },
           required: ['name'],
@@ -712,7 +718,12 @@ class KubeMcpServer {
             args.sinceSeconds as number,
             args.sinceTime as string,
             args.grep as string,
-            args.severityFilter as 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE',
+            args.severityFilter as
+              | 'ERROR'
+              | 'WARN'
+              | 'INFO'
+              | 'DEBUG'
+              | 'TRACE',
             args.maxBytes as number
           );
           break;
