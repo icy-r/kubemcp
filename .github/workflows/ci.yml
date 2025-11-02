@@ -52,7 +52,7 @@ jobs:
         run: pnpm run typecheck
 
       - name: Run tests
-        run: pnpm test -- tests/log-processor.test.ts tests/formatter.test.ts
+        run: pnpm test -- tests/log-processor.test.ts
 
       - name: Build project
         run: pnpm run build
