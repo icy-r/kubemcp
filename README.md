@@ -39,7 +39,21 @@ A production-ready Model Context Protocol (MCP) server for managing MicroK8s clu
 - MicroK8s cluster (running in Multipass VM or locally)
 - kubectl configured (for local mode)
 
-### Setup
+### Quick Install (Recommended)
+
+Install globally via npm:
+
+```bash
+npm install -g kubemcp
+```
+
+Or use directly with npx (no installation needed):
+
+```bash
+npx kubemcp
+```
+
+### Development Setup
 
 1. **Clone and install dependencies:**
 
@@ -266,18 +280,16 @@ This mode executes `multipass exec <vm> -- sudo microk8s config` to get the kube
 
 ## Integration with Cursor IDE
 
-Add the MCP server to your Cursor settings:
+Add the MCP server to your Cursor settings. Open Cursor Settings → Features → MCP and add the server configuration:
 
-1. Open Cursor Settings
-2. Navigate to MCP configuration
-3. Add the server configuration:
+### Option 1: Using npx (Recommended - No Installation Required)
 
 ```json
 {
   "mcpServers": {
     "kubemcp": {
-      "command": "node",
-      "args": ["D:\\Github\\kubeMcp\\dist\\index.js"],
+      "command": "npx",
+      "args": ["-y", "kubemcp"],
       "env": {
         "KUBEMCP_CONFIG_SOURCE": "local",
         "KUBEMCP_DEFAULT_NAMESPACE": "default",
@@ -290,17 +302,64 @@ Add the MCP server to your Cursor settings:
 }
 ```
 
-For Multipass mode:
+### Option 2: Using Global Installation
+
+First install globally:
+```bash
+npm install -g kubemcp
+```
+
+Then configure:
+```json
+{
+  "mcpServers": {
+    "kubemcp": {
+      "command": "kubemcp",
+      "env": {
+        "KUBEMCP_CONFIG_SOURCE": "local",
+        "KUBEMCP_DEFAULT_NAMESPACE": "default",
+        "KUBEMCP_RESPONSE_FORMAT": "auto",
+        "KUBEMCP_LOG_MAX_LINES": "100",
+        "KUBEMCP_LOG_DEFAULT_SEVERITY": "WARN"
+      }
+    }
+  }
+}
+```
+
+### Option 3: Using Local Development Build
 
 ```json
 {
   "mcpServers": {
     "kubemcp": {
       "command": "node",
-      "args": ["D:\\Github\\kubeMcp\\dist\\index.js"],
+      "args": ["/path/to/kubeMcp/dist/index.js"],
+      "env": {
+        "KUBEMCP_CONFIG_SOURCE": "local",
+        "KUBEMCP_DEFAULT_NAMESPACE": "default",
+        "KUBEMCP_RESPONSE_FORMAT": "auto",
+        "KUBEMCP_LOG_MAX_LINES": "100",
+        "KUBEMCP_LOG_DEFAULT_SEVERITY": "WARN"
+      }
+    }
+  }
+}
+```
+
+### Multipass Mode Configuration
+
+For any of the above options, use Multipass mode by changing the environment variables:
+
+```json
+{
+  "mcpServers": {
+    "kubemcp": {
+      "command": "npx",
+      "args": ["-y", "kubemcp"],
       "env": {
         "KUBEMCP_CONFIG_SOURCE": "multipass",
-        "KUBEMCP_VM_NAME": "my-k8s-vm",
+        "KUBEMCP_VM_NAME": "microk8s-vm",
         "KUBEMCP_DEFAULT_NAMESPACE": "default",
         "KUBEMCP_RESPONSE_FORMAT": "auto"
       }

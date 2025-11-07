@@ -5,6 +5,18 @@ All notable changes to the KubeMCP project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2025-11-07
+
+### Added
+- Comprehensive npx usage documentation in README
+- Multiple installation options (npx, global install, local development)
+- Clear MCP configuration examples for Cursor IDE
+
+### Documentation
+- Added quick install section with npx instructions
+- Reorganized installation section for better clarity
+- Added three configuration options for Cursor IDE integration
+
 ## [1.1.3] - 2025-11-07
 
 ### Fixed
