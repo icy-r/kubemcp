@@ -4,6 +4,22 @@
   "description": "MCP server for managing MicroK8s clusters via Cursor IDE",
   "main": "dist/index.js",
   "type": "module",
+  "bin": {
+    "kubemcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/icy-r/kubemcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/icy-r/kubemcp/issues"
+  },
+  "homepage": "https://github.com/icy-r/kubemcp#readme",
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/index.ts",

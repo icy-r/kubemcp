@@ -1,0 +1,30 @@
+# Source files
+src/
+tests/
+
+# Config files
+.eslintrc*
+.prettierrc
+tsconfig.json
+jest.config.js
+eslint.config.js
+
+# Git
+.git/
+.github/
+.gitignore
+
+# Development
+node_modules/
+*.log
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+coverage/
+*.tgz
+.husky/
