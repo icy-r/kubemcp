@@ -5,6 +5,16 @@ All notable changes to the KubeMCP project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2025-11-07
+
+### Fixed
+- Merged publish workflow into release workflow to ensure automatic npm publishing on tag push
+- GitHub workflows created by GITHUB_TOKEN don't trigger other workflows, so combined them
+
+### Changed
+- Release workflow now handles both GitHub release creation and npm publishing
+- Publish workflow is now manual-only for emergency use
+
 ## [1.1.2] - 2025-11-07
 
 ### Fixed
