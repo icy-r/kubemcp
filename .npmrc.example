@@ -1,0 +1,13 @@
+# .npmrc.example - Configuration for publishing to both npm and GitHub Packages
+# Copy this to .npmrc for local development/publishing
+
+# Default registry (npm)
+registry=https://registry.npmjs.org/
+
+# For installing scoped packages from GitHub Packages
+# Uncomment and add your GitHub Personal Access Token if you want to install from GitHub Packages
+# @icy-r:registry=https://npm.pkg.github.com
+# //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
+
+# Note: The release workflow handles publishing to both registries automatically
+# You don't need to configure .npmrc for automated releases
