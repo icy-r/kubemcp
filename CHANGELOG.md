@@ -5,6 +5,34 @@ All notable changes to the KubeMCP project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-11-09
+
+### Security
+- **Fixed critical security vulnerabilities** in dependencies:
+  - Resolved Prototype Pollution vulnerability in tough-cookie (Moderate)
+  - Fixed unsafe random function in form-data boundary generation (Critical)
+  - Addressed Server-Side Request Forgery in Request (Moderate)
+
+### Changed
+- **Upgraded @kubernetes/client-node from 0.22.3 to 1.4.0**
+  - Breaking API changes migrated: all Kubernetes API calls now use object-based parameters
+  - Updated API response handling: removed `.body` wrapper from responses
+  - Refactored 8 tool files to support new API structure
+- Updated pnpm version in CI workflows from v8 to v9 for lockfile compatibility
+
+### Added
+- Automated security audit scripts (`pnpm audit` and `pnpm security:check`)
+- GitHub Actions Security Audit workflow with weekly scanning
+- Pre-commit security checks via Husky hooks
+- Comprehensive security vulnerability management system
+
+### Removed
+- Dependabot configuration (automated dependency PRs disabled)
+
+### Fixed
+- ESLint warnings for unavoidable `any` types in Kubernetes API responses
+- CI/CD pipeline lockfile compatibility issues
+
 ## [1.1.5] - 2025-11-07
 
 ### Added
