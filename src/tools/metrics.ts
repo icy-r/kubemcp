@@ -21,20 +21,32 @@ export async function getPodMetrics(
 
     if (podName) {
       // Get metrics for specific pod
-      const response = await metricsApi.getPodMetrics(ns, podName);
+      const response = await metricsApi.getPodMetrics(ns);
+      const podMetrics = response.items.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (item: any) => item.metadata.name === podName
+      );
+      if (!podMetrics) {
+        throw new Error(`Metrics not found for pod ${podName}`);
+      }
       return [
         {
-          name: response.metadata.name,
-          namespace: response.metadata.namespace,
-          cpu: formatCpuUsage(response.containers),
-          memory: formatMemoryUsage(response.containers),
+          name: podMetrics.metadata.name,
+          namespace: podMetrics.metadata.namespace,
+          cpu: formatCpuUsage(podMetrics.containers),
+          memory: formatMemoryUsage(podMetrics.containers),
         },
       ];
     } else {
       // Get metrics for all pods in namespace
-      // Note: This requires kubectl top pods equivalent
-      // For now, return empty array as this requires special API support
-      return [];
+      const response = await metricsApi.getPodMetrics(ns);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return response.items.map((podMetrics: any) => ({
+        name: podMetrics.metadata.name,
+        namespace: podMetrics.metadata.namespace,
+        cpu: formatCpuUsage(podMetrics.containers),
+        memory: formatMemoryUsage(podMetrics.containers),
+      }));
     }
   } catch (error) {
     throw new Error(`Failed to get pod metrics: ${handleK8sError(error)}`);
@@ -52,20 +64,28 @@ export async function getNodeMetrics(
   try {
     const metricsApi = k8sClient.getMetricsApi();
 
+    // Get metrics for all nodes
+    const response = await metricsApi.getNodeMetrics();
+
     if (nodeName) {
-      // Get metrics for specific node
-      const response = await metricsApi.getNodeMetrics(nodeName);
+      // Filter for specific node
+      const nodeMetrics = response.items.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (item: any) => item.metadata.name === nodeName
+      );
+      if (!nodeMetrics) {
+        throw new Error(`Metrics not found for node ${nodeName}`);
+      }
       return [
         {
-          name: response.metadata.name,
-          cpu: response.usage.cpu,
-          memory: response.usage.memory,
+          name: nodeMetrics.metadata.name,
+          cpu: nodeMetrics.usage.cpu,
+          memory: nodeMetrics.usage.memory,
         },
       ];
     } else {
-      // Get metrics for all nodes
-      const response = await metricsApi.getNodeMetrics();
-      return response.items.map((node) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return response.items.map((node: any) => ({
         name: node.metadata.name,
         cpu: node.usage.cpu,
         memory: node.usage.memory,
@@ -89,9 +109,12 @@ export async function getDeploymentMetrics(
   try {
     // First get the deployment to find its pods
     const appsApi = k8sClient.getAppsApi();
-    const deployment = await appsApi.readNamespacedDeployment(name, ns);
+    const deployment = await appsApi.readNamespacedDeployment({
+      name,
+      namespace: ns,
+    });
 
-    const labelSelector = deployment.body.spec?.selector?.matchLabels;
+    const labelSelector = deployment.spec?.selector?.matchLabels;
     if (!labelSelector) {
       throw new Error('Deployment has no label selector');
     }
@@ -103,31 +126,36 @@ export async function getDeploymentMetrics(
 
     // Get pods matching the selector
     const coreApi = k8sClient.getCoreApi();
-    const pods = await coreApi.listNamespacedPod(
-      ns,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      selector
-    );
+    const pods = await coreApi.listNamespacedPod({
+      namespace: ns,
+      labelSelector: selector,
+    });
 
     // Get metrics for each pod
     const metricsApi = k8sClient.getMetricsApi();
     const metrics: ResourceMetrics[] = [];
 
-    for (const pod of pods.body.items) {
+    // Get all pod metrics for the namespace
+    const allPodMetrics = await metricsApi.getPodMetrics(ns);
+
+    for (const pod of pods.items) {
       try {
-        const podMetrics = await metricsApi.getPodMetrics(
-          pod.metadata?.namespace || ns,
-          pod.metadata?.name || ''
+        const podMetrics = allPodMetrics.items.find(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (m: any) => m.metadata.name === pod.metadata?.name
         );
-        metrics.push({
-          name: podMetrics.metadata.name,
-          namespace: podMetrics.metadata.namespace,
-          cpu: formatCpuUsage(podMetrics.containers),
-          memory: formatMemoryUsage(podMetrics.containers),
-        });
+        if (podMetrics) {
+          metrics.push({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            name: (podMetrics as any).metadata.name,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            namespace: (podMetrics as any).metadata.namespace,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            cpu: formatCpuUsage((podMetrics as any).containers),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            memory: formatMemoryUsage((podMetrics as any).containers),
+          });
+        }
       } catch {
         // Skip pods without metrics
       }

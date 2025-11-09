@@ -23,21 +23,22 @@ export async function listPods(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const response = await coreApi.listNamespacedPod(
-      ns,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      labelSelector
-    );
+    const response = await coreApi.listNamespacedPod({
+      namespace: ns,
+      labelSelector,
+    });
 
-    return response.body.items.map((pod) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return response.items.map((pod: any) => {
       const containerStatuses = pod.status?.containerStatuses || [];
       const totalContainers = containerStatuses.length;
-      const readyContainers = containerStatuses.filter((c) => c.ready).length;
+      const readyContainers = containerStatuses.filter(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (c: any) => c.ready
+      ).length;
       const restarts = containerStatuses.reduce(
-        (sum, c) => sum + c.restartCount,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (sum: number, c: any) => sum + c.restartCount,
         0
       );
       const age = calculateAge(pod.metadata?.creationTimestamp);
@@ -70,8 +71,8 @@ export async function getPod(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const response = await coreApi.readNamespacedPod(name, ns);
-    return response.body;
+    const response = await coreApi.readNamespacedPod({ name, namespace: ns });
+    return response;
   } catch (error) {
     throw new Error(`Failed to get pod '${name}': ${handleK8sError(error)}`);
   }
@@ -89,7 +90,7 @@ export async function deletePod(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    await coreApi.deleteNamespacedPod(name, ns);
+    await coreApi.deleteNamespacedPod({ name, namespace: ns });
     return `Pod '${name}' deleted successfully`;
   } catch (error) {
     throw new Error(`Failed to delete pod '${name}': ${handleK8sError(error)}`);
@@ -133,21 +134,16 @@ export async function getPodLogs(
       );
     }
 
-    const response = await coreApi.readNamespacedPodLog(
+    const response = await coreApi.readNamespacedPodLog({
       name,
-      ns,
+      namespace: ns,
       container,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
       previous,
-      sinceSecondsValue,
-      effectiveTail,
-      undefined
-    );
+      sinceSeconds: sinceSecondsValue,
+      tailLines: effectiveTail,
+    });
 
-    let logs = response.body;
+    let logs = response;
 
     // Apply filters if specified
     if (effectiveSeverity || grep || effectiveMaxBytes) {
@@ -185,8 +181,7 @@ export async function getPodStatus(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const response = await coreApi.readNamespacedPod(name, ns);
-    const pod = response.body;
+    const pod = await coreApi.readNamespacedPod({ name, namespace: ns });
 
     const containerStatuses = pod.status?.containerStatuses || [];
     const conditions = pod.status?.conditions || [];
@@ -199,14 +194,16 @@ export async function getPodStatus(
       hostIP: pod.status?.hostIP,
       node: pod.spec?.nodeName,
       startTime: pod.status?.startTime,
-      conditions: conditions.map((c) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      conditions: conditions.map((c: any) => ({
         type: c.type,
         status: c.status,
         reason: c.reason,
         message: c.message,
         lastTransitionTime: c.lastTransitionTime,
       })),
-      containerStatuses: containerStatuses.map((c) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      containerStatuses: containerStatuses.map((c: any) => ({
         name: c.name,
         ready: c.ready,
         restartCount: c.restartCount,
@@ -239,21 +236,16 @@ export async function summarizePodLogs(
     const coreApi = k8sClient.getCoreApi();
 
     // Get logs (use tail to limit if specified)
-    const response = await coreApi.readNamespacedPodLog(
+    const response = await coreApi.readNamespacedPodLog({
       name,
-      ns,
+      namespace: ns,
       container,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      false,
+      previous: false,
       sinceSeconds,
-      tail,
-      undefined
-    );
+      tailLines: tail,
+    });
 
-    const logs = response.body;
+    const logs = response;
 
     // Generate summary
     return summarizeLogs(logs);

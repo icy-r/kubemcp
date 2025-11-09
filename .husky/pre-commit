@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run linting
+echo "🔍 Running linter..."
+pnpm run lint
+
+# Run type checking
+echo "📝 Running type check..."
+pnpm run typecheck
+
+# Run security audit (only show critical and high vulnerabilities)
+echo "🔒 Running security audit..."
+pnpm audit --audit-level=high || {
+  echo "⚠️  Security vulnerabilities found! Please review and fix before committing."
+  exit 1
+}
+
+echo "✅ All pre-commit checks passed!"
+

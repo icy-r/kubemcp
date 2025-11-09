@@ -27,6 +27,33 @@ async function loadLocalKubeconfig(): Promise<k8s.KubeConfig> {
 }
 
 /**
+ * Load kubeconfig from custom path (network, remote, or custom location)
+ */
+async function loadCustomKubeconfig(
+  customPath: string
+): Promise<k8s.KubeConfig> {
+  const kc = new k8s.KubeConfig();
+
+  try {
+    // Normalize path to handle UNC paths, network paths, etc.
+    const normalizedPath = path.resolve(customPath);
+
+    await fs.access(normalizedPath);
+    kc.loadFromFile(normalizedPath);
+    return kc;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(
+        `Failed to load kubeconfig from ${customPath}: ${error.message}`
+      );
+    }
+    throw new Error(
+      `Failed to load kubeconfig from custom path: ${customPath}`
+    );
+  }
+}
+
+/**
  * Load kubeconfig from multipass VM
  */
 async function loadMultipassKubeconfig(): Promise<k8s.KubeConfig> {
@@ -49,6 +76,13 @@ async function loadMultipassKubeconfig(): Promise<k8s.KubeConfig> {
 export async function loadKubeconfig(): Promise<k8s.KubeConfig> {
   if (config.configSource === 'multipass') {
     return loadMultipassKubeconfig();
+  } else if (config.configSource === 'custom') {
+    if (!config.customKubeconfigPath) {
+      throw new Error(
+        'Custom kubeconfig path not specified. Set KUBEMCP_KUBECONFIG_PATH environment variable.'
+      );
+    }
+    return loadCustomKubeconfig(config.customKubeconfigPath);
   } else {
     return loadLocalKubeconfig();
   }

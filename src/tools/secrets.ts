@@ -16,9 +16,10 @@ export async function listSecrets(namespace?: string): Promise<SecretInfo[]> {
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const response = await coreApi.listNamespacedSecret(ns);
+    const response = await coreApi.listNamespacedSecret({ namespace: ns });
 
-    return response.body.items.map((secret) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return response.items.map((secret: any) => {
       const dataKeys = Object.keys(secret.data || {});
       const age = calculateAge(secret.metadata?.creationTimestamp);
 
@@ -47,13 +48,16 @@ export async function getSecret(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const response = await coreApi.readNamespacedSecret(name, ns);
+    const response = await coreApi.readNamespacedSecret({
+      name,
+      namespace: ns,
+    });
 
     // Return metadata and keys only, not the actual secret data
     return {
-      metadata: response.body.metadata,
-      type: response.body.type,
-      dataKeys: Object.keys(response.body.data || {}),
+      metadata: response.metadata,
+      type: response.type,
+      dataKeys: Object.keys(response.data || {}),
     };
   } catch (error) {
     throw new Error(`Failed to get Secret '${name}': ${handleK8sError(error)}`);
@@ -92,7 +96,7 @@ export async function createSecret(
       data: encodedData,
     };
 
-    await coreApi.createNamespacedSecret(ns, secret);
+    await coreApi.createNamespacedSecret({ namespace: ns, body: secret });
     return `Secret '${name}' created successfully`;
   } catch (error) {
     throw new Error(
@@ -114,7 +118,10 @@ export async function updateSecret(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const existing = await coreApi.readNamespacedSecret(name, ns);
+    const existing = await coreApi.readNamespacedSecret({
+      name,
+      namespace: ns,
+    });
 
     // Encode data to base64
     const encodedData: Record<string, string> = {};
@@ -122,9 +129,13 @@ export async function updateSecret(
       encodedData[key] = Buffer.from(value).toString('base64');
     }
 
-    existing.body.data = encodedData;
+    existing.data = encodedData;
 
-    await coreApi.replaceNamespacedSecret(name, ns, existing.body);
+    await coreApi.replaceNamespacedSecret({
+      name,
+      namespace: ns,
+      body: existing,
+    });
     return `Secret '${name}' updated successfully`;
   } catch (error) {
     throw new Error(
@@ -145,7 +156,7 @@ export async function deleteSecret(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    await coreApi.deleteNamespacedSecret(name, ns);
+    await coreApi.deleteNamespacedSecret({ name, namespace: ns });
     return `Secret '${name}' deleted successfully`;
   } catch (error) {
     throw new Error(

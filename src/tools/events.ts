@@ -19,17 +19,14 @@ export async function getEvents(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const response = await coreApi.listNamespacedEvent(
-      ns,
-      undefined,
-      undefined,
-      undefined,
+    const response = await coreApi.listNamespacedEvent({
+      namespace: ns,
       fieldSelector,
-      undefined,
-      limit
-    );
+      limit,
+    });
 
-    return response.body.items.map((event) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return response.items.map((event: any) => {
       const obj = event.involvedObject;
       const objectName = `${obj.kind}/${obj.name}`;
       const lastSeen = formatTimestamp(event.lastTimestamp);

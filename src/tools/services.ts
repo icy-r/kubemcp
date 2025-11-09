@@ -15,12 +15,14 @@ export async function listServices(namespace?: string): Promise<ServiceInfo[]> {
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const response = await coreApi.listNamespacedService(ns);
+    const response = await coreApi.listNamespacedService({ namespace: ns });
 
-    return response.body.items.map((service) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return response.items.map((service: any) => {
       const ports =
         service.spec?.ports
-          ?.map((p) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ?.map((p: any) => {
             const protocol = p.protocol || 'TCP';
             const targetPort = p.targetPort ? `:${p.targetPort}` : '';
             return `${p.port}${targetPort}/${protocol}`;
@@ -61,8 +63,11 @@ export async function getService(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const response = await coreApi.readNamespacedService(name, ns);
-    return response.body;
+    const response = await coreApi.readNamespacedService({
+      name,
+      namespace: ns,
+    });
+    return response;
   } catch (error) {
     throw new Error(
       `Failed to get service '${name}': ${handleK8sError(error)}`
@@ -82,16 +87,22 @@ export async function getServiceEndpoints(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const response = await coreApi.readNamespacedEndpoints(name, ns);
-    const endpoints = response.body;
+    const response = await coreApi.readNamespacedEndpoints({
+      name,
+      namespace: ns,
+    });
+    const endpoints = response;
 
     const endpointList =
-      endpoints.subsets?.flatMap((subset) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      endpoints.subsets?.flatMap((subset: any) => {
         const addresses = subset.addresses || [];
         const ports = subset.ports || [];
 
-        return addresses.flatMap((addr) =>
-          ports.map((port) => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return addresses.flatMap((addr: any) =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ports.map((port: any) => ({
             ip: addr.ip,
             hostname: addr.hostname,
             nodeName: addr.nodeName,

@@ -1,4 +1,4 @@
-# KubeMCP - Kubernetes MCP Server for Cursor IDE
+# KubeMCP - Kubernetes MCP Server for Cursor/VSCode IDE
 
 A Model Context Protocol (MCP) server for managing Kubernetes clusters directly from Cursor IDE. Manage deployments, pods, services, logs, metrics, and more through AI-powered conversations.
 
@@ -72,13 +72,46 @@ Add to your Cursor MCP settings (Settings → Features → MCP):
 }
 ```
 
+**For Custom Kubeconfig Path (Network/Remote):**
+```json
+{
+  "mcpServers": {
+    "kubemcp": {
+      "command": "npx",
+      "args": ["-y", "kubemcp"],
+      "env": {
+        "KUBEMCP_CONFIG_SOURCE": "custom",
+        "KUBEMCP_KUBECONFIG_PATH": "/path/to/custom/kubeconfig"
+      }
+    }
+  }
+}
+```
+
+**Windows Network Path Example:**
+```json
+{
+  "mcpServers": {
+    "kubemcp": {
+      "command": "npx",
+      "args": ["-y", "kubemcp"],
+      "env": {
+        "KUBEMCP_CONFIG_SOURCE": "custom",
+        "KUBEMCP_KUBECONFIG_PATH": "\\\\server\\share\\kubeconfig"
+      }
+    }
+  }
+}
+```
+
 ## Configuration
 
 ### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `KUBEMCP_CONFIG_SOURCE` | `local` | Kubeconfig source: `local` or `multipass` |
+| `KUBEMCP_CONFIG_SOURCE` | `local` | Kubeconfig source: `local`, `multipass`, or `custom` |
+| `KUBEMCP_KUBECONFIG_PATH` | - | Custom kubeconfig path (required if `configSource=custom`) |
 | `KUBEMCP_VM_NAME` | `microk8s-vm` | VM name for multipass mode |
 | `KUBEMCP_DEFAULT_NAMESPACE` | `default` | Default namespace |
 | `KUBEMCP_RESPONSE_FORMAT` | `auto` | Response format: `auto`, `json`, or `toon` |
@@ -97,6 +130,18 @@ KUBEMCP_CONFIG_SOURCE=local
 KUBEMCP_CONFIG_SOURCE=multipass
 KUBEMCP_VM_NAME=microk8s-vm
 ```
+
+**Custom Path Mode:** Use custom kubeconfig from any location (network, remote, etc.)
+```env
+KUBEMCP_CONFIG_SOURCE=custom
+KUBEMCP_KUBECONFIG_PATH=/path/to/kubeconfig
+```
+
+**Examples of Custom Paths:**
+- Linux/Mac: `/mnt/network-share/kubeconfig`
+- Windows UNC: `\\server\share\kubeconfig`
+- Windows Mapped Drive: `Z:\configs\kubeconfig`
+- Remote config: `/remote/cluster/config`
 
 ## Available Tools
 
@@ -174,16 +219,40 @@ multipass exec <vm-name> -- sudo microk8s enable metrics-server
 ```bash
 git clone https://github.com/icy-r/kubemcp.git
 cd kubemcp
-npm install
-npm run build
-npm start
+pnpm install
+pnpm run build
+pnpm start
 ```
 
 ### Scripts
-- `npm run dev` - Development with auto-reload
-- `npm run build` - Build TypeScript
-- `npm test` - Run tests
-- `npm run lint` - Lint code
+- `pnpm run dev` - Development with auto-reload
+- `pnpm run build` - Build TypeScript
+- `pnpm test` - Run tests
+- `pnpm run lint` - Lint code
+- `pnpm run audit` - Run security audit
+- `pnpm run security:check` - Full security check (audit + outdated packages)
+
+## Security
+
+### Automated Security Monitoring
+
+This project implements multiple layers of security protection:
+
+1. **GitHub Dependabot** - Automatically creates PRs for security updates weekly
+2. **GitHub Actions** - Runs security audits on every push and weekly scheduled scans
+3. **Pre-commit Hooks** - Blocks commits with high/critical vulnerabilities
+4. **Manual Audits** - Run `pnpm run audit` anytime to check for vulnerabilities
+
+### Security Best Practices
+
+- Dependencies are regularly audited for known vulnerabilities
+- Lockfile (`pnpm-lock.yaml`) is committed to ensure consistent builds
+- Security updates are reviewed and applied promptly
+- Only essential dependencies are included to minimize attack surface
+
+### Reporting Security Issues
+
+If you discover a security vulnerability, please email the maintainer directly rather than opening a public issue.
 
 ## Requirements
 

@@ -32,6 +32,9 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
+    "audit": "pnpm audit --audit-level=moderate",
+    "audit:fix": "pnpm audit --fix",
+    "security:check": "pnpm audit --audit-level=moderate && pnpm outdated",
     "prepare": "husky install",
     "prepublishOnly": "pnpm run build",
     "version": "pnpm run format && git add -A src",
@@ -47,7 +50,7 @@
   "author": "icy-r <asath12882@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@kubernetes/client-node": "^0.22.0",
+    "@kubernetes/client-node": "^1.4.0",
     "@modelcontextprotocol/sdk": "^1.0.4",
     "@toon-format/toon": "^0.7.0",
     "execa": "^9.5.2"

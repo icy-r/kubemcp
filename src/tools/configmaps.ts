@@ -18,9 +18,10 @@ export async function listConfigMaps(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const response = await coreApi.listNamespacedConfigMap(ns);
+    const response = await coreApi.listNamespacedConfigMap({ namespace: ns });
 
-    return response.body.items.map((cm) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return response.items.map((cm: any) => {
       const dataKeys = Object.keys(cm.data || {});
       const age = calculateAge(cm.metadata?.creationTimestamp);
 
@@ -48,8 +49,11 @@ export async function getConfigMap(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const response = await coreApi.readNamespacedConfigMap(name, ns);
-    return response.body;
+    const response = await coreApi.readNamespacedConfigMap({
+      name,
+      namespace: ns,
+    });
+    return response;
   } catch (error) {
     throw new Error(
       `Failed to get ConfigMap '${name}': ${handleK8sError(error)}`
@@ -80,7 +84,7 @@ export async function createConfigMap(
       data,
     };
 
-    await coreApi.createNamespacedConfigMap(ns, configMap);
+    await coreApi.createNamespacedConfigMap({ namespace: ns, body: configMap });
     return `ConfigMap '${name}' created successfully`;
   } catch (error) {
     throw new Error(
@@ -102,11 +106,18 @@ export async function updateConfigMap(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const existing = await coreApi.readNamespacedConfigMap(name, ns);
+    const existing = await coreApi.readNamespacedConfigMap({
+      name,
+      namespace: ns,
+    });
 
-    existing.body.data = data;
+    existing.data = data;
 
-    await coreApi.replaceNamespacedConfigMap(name, ns, existing.body);
+    await coreApi.replaceNamespacedConfigMap({
+      name,
+      namespace: ns,
+      body: existing,
+    });
     return `ConfigMap '${name}' updated successfully`;
   } catch (error) {
     throw new Error(
@@ -127,7 +138,7 @@ export async function deleteConfigMap(
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    await coreApi.deleteNamespacedConfigMap(name, ns);
+    await coreApi.deleteNamespacedConfigMap({ name, namespace: ns });
     return `ConfigMap '${name}' deleted successfully`;
   } catch (error) {
     throw new Error(

@@ -17,9 +17,10 @@ export async function listDeployments(
 
   try {
     const appsApi = k8sClient.getAppsApi();
-    const response = await appsApi.listNamespacedDeployment(ns);
+    const response = await appsApi.listNamespacedDeployment({ namespace: ns });
 
-    return response.body.items.map((deployment) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return response.items.map((deployment: any) => {
       const replicas = deployment.spec?.replicas || 0;
       const ready = deployment.status?.readyReplicas || 0;
       const upToDate = deployment.status?.updatedReplicas || 0;
@@ -53,8 +54,11 @@ export async function getDeployment(
 
   try {
     const appsApi = k8sClient.getAppsApi();
-    const response = await appsApi.readNamespacedDeployment(name, ns);
-    return response.body;
+    const response = await appsApi.readNamespacedDeployment({
+      name,
+      namespace: ns,
+    });
+    return response;
   } catch (error) {
     throw new Error(
       `Failed to get deployment '${name}': ${handleK8sError(error)}`
@@ -75,11 +79,18 @@ export async function scaleDeployment(
 
   try {
     const appsApi = k8sClient.getAppsApi();
-    const deployment = await appsApi.readNamespacedDeployment(name, ns);
+    const deployment = await appsApi.readNamespacedDeployment({
+      name,
+      namespace: ns,
+    });
 
-    deployment.body.spec!.replicas = replicas;
+    deployment.spec!.replicas = replicas;
 
-    await appsApi.replaceNamespacedDeployment(name, ns, deployment.body);
+    await appsApi.replaceNamespacedDeployment({
+      name,
+      namespace: ns,
+      body: deployment,
+    });
 
     return `Deployment '${name}' scaled to ${replicas} replicas`;
   } catch (error) {
@@ -101,21 +112,28 @@ export async function restartDeployment(
 
   try {
     const appsApi = k8sClient.getAppsApi();
-    const deployment = await appsApi.readNamespacedDeployment(name, ns);
+    const deployment = await appsApi.readNamespacedDeployment({
+      name,
+      namespace: ns,
+    });
 
     // Add restart annotation to trigger rolling restart
-    if (!deployment.body.spec?.template.metadata) {
-      deployment.body.spec!.template.metadata = {};
+    if (!deployment.spec?.template.metadata) {
+      deployment.spec!.template.metadata = {};
     }
-    if (!deployment.body.spec?.template.metadata.annotations) {
-      deployment.body.spec!.template.metadata.annotations = {};
+    if (!deployment.spec?.template.metadata.annotations) {
+      deployment.spec!.template.metadata.annotations = {};
     }
 
-    deployment.body.spec!.template.metadata.annotations[
+    deployment.spec!.template.metadata.annotations[
       'kubectl.kubernetes.io/restartedAt'
     ] = new Date().toISOString();
 
-    await appsApi.replaceNamespacedDeployment(name, ns, deployment.body);
+    await appsApi.replaceNamespacedDeployment({
+      name,
+      namespace: ns,
+      body: deployment,
+    });
 
     return `Deployment '${name}' restart initiated`;
   } catch (error) {
@@ -137,8 +155,10 @@ export async function getDeploymentStatus(
 
   try {
     const appsApi = k8sClient.getAppsApi();
-    const response = await appsApi.readNamespacedDeployment(name, ns);
-    const deployment = response.body;
+    const deployment = await appsApi.readNamespacedDeployment({
+      name,
+      namespace: ns,
+    });
 
     const replicas = deployment.spec?.replicas || 0;
     const ready = deployment.status?.readyReplicas || 0;
@@ -155,7 +175,8 @@ export async function getDeploymentStatus(
         upToDate,
         available,
       },
-      conditions: conditions.map((c) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      conditions: conditions.map((c: any) => ({
         type: c.type,
         status: c.status,
         reason: c.reason,

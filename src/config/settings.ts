@@ -6,7 +6,9 @@ import type { ServerConfig } from '../types/index.js';
 export function loadConfig(): ServerConfig {
   return {
     configSource:
-      (process.env.KUBEMCP_CONFIG_SOURCE as 'local' | 'multipass') || 'local',
+      (process.env.KUBEMCP_CONFIG_SOURCE as 'local' | 'multipass' | 'custom') ||
+      'local',
+    customKubeconfigPath: process.env.KUBEMCP_KUBECONFIG_PATH,
     vmName: process.env.KUBEMCP_VM_NAME || 'microk8s-vm',
     defaultNamespace: process.env.KUBEMCP_DEFAULT_NAMESPACE || 'default',
     logLevel:

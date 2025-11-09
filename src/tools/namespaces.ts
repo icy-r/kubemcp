@@ -16,7 +16,7 @@ export async function listNamespaces(): Promise<NamespaceInfo[]> {
     const coreApi = k8sClient.getCoreApi();
     const response = await coreApi.listNamespace();
 
-    return response.body.items.map((ns) => {
+    return response.items.map((ns: k8s.V1Namespace) => {
       const age = calculateAge(ns.metadata?.creationTimestamp);
 
       return {
@@ -46,7 +46,7 @@ export async function createNamespace(name: string): Promise<string> {
       },
     };
 
-    await coreApi.createNamespace(namespace);
+    await coreApi.createNamespace({ body: namespace });
     return `Namespace '${name}' created successfully`;
   } catch (error) {
     throw new Error(
@@ -63,7 +63,7 @@ export async function deleteNamespace(name: string): Promise<string> {
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    await coreApi.deleteNamespace(name);
+    await coreApi.deleteNamespace({ name });
     return `Namespace '${name}' deletion initiated`;
   } catch (error) {
     throw new Error(
@@ -80,8 +80,8 @@ export async function getNamespace(name: string): Promise<object> {
 
   try {
     const coreApi = k8sClient.getCoreApi();
-    const response = await coreApi.readNamespace(name);
-    return response.body;
+    const response = await coreApi.readNamespace({ name });
+    return response;
   } catch (error) {
     throw new Error(
       `Failed to get namespace '${name}': ${handleK8sError(error)}`
