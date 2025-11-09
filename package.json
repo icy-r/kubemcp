@@ -1,6 +1,6 @@
 {
   "name": "kubemcp",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "description": "MCP server for managing MicroK8s clusters via Cursor IDE",
   "main": "dist/index.js",
   "type": "module",
