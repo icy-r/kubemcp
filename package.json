@@ -51,8 +51,8 @@
   "license": "MIT",
   "dependencies": {
     "@kubernetes/client-node": "^1.4.0",
-    "@modelcontextprotocol/sdk": "^1.0.4",
-    "@toon-format/toon": "^0.7.0",
+    "@modelcontextprotocol/sdk": "^1.21.1",
+    "@toon-format/toon": "^0.8.0",
     "execa": "^9.5.2"
   },
   "devDependencies": {
