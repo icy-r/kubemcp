@@ -15,12 +15,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/icy-r/kube-mcp.git"
+    "url": "git+https://github.com/icy-r/kubemcp.git"
   },
   "bugs": {
-    "url": "https://github.com/icy-r/kube-mcp/issues"
+    "url": "https://github.com/icy-r/kubemcp/issues"
   },
-  "homepage": "https://github.com/icy-r/kube-mcp#readme",
+  "homepage": "https://github.com/icy-r/kubemcp#readme",
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
