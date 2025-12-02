@@ -1,3 +1,38 @@
+# [2.0.0](https://github.com/icy-r/kubemcp/compare/v1.2.0...v2.0.0) (2025-12-02)
+
+
+* feat!: refactor to 9 consolidated tools with safety features ([c87aee1](https://github.com/icy-r/kubemcp/commit/c87aee1555d6f593aac5733bf84a7a5ce690f16b))
+
+
+### Bug Fixes
+
+* **ci:** use master branch instead of main ([2d29a26](https://github.com/icy-r/kubemcp/commit/2d29a2696875904f62645e703489bfede4f1e16c))
+* correct repository URL and add .env.example ([1206e9f](https://github.com/icy-r/kubemcp/commit/1206e9f2a91fc2d67414f1287d029c61d16a5a6a))
+
+
+### BREAKING CHANGES
+
+* Tool API has been completely redesigned
+
+- Consolidate 35 individual tools into 9 action-based tools:
+  - k8s_deployments (list, get, scale, restart, get_status, get_metrics)
+  - k8s_pods (list, get, delete, get_logs, summarize_logs, get_status)
+  - k8s_services (list, get, get_endpoints)
+  - k8s_configmaps (list, get, create, update, delete)
+  - k8s_secrets (list, get, create, update, delete)
+  - k8s_namespaces (list, get, create, delete)
+  - k8s_metrics (get_pod_metrics, get_node_metrics)
+  - k8s_events (list, get_resource_events, get_recent_events, get_events_by_type)
+  - k8s_audit (get_config, configure, get_session_log, clear_session_log, get_session_stats)
+- Remove multipass support, keep only local and custom kubeconfig
+- Add safety features:
+  - Audit logging for all operations
+  - Dry-run mode for previewing changes
+  - Confirmation required for destructive operations
+- Migrate from Jest to Vitest for testing
+- Set up CI/CD with semantic-release
+- Update README with new tool documentation
+
 # Changelog
 
 All notable changes to the KubeMCP project will be documented in this file.
@@ -174,4 +209,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pre-commit hooks with Husky
 - Type-safe implementations
 - Clear error messages
-
