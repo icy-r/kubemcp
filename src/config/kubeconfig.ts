@@ -3,10 +3,9 @@ import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { config } from './settings.js';
-import { getKubeconfigFromVM } from '../utils/multipass.js';
 
 /**
- * Load kubeconfig from local file
+ * Load kubeconfig from local file (~/.kube/config)
  */
 async function loadLocalKubeconfig(): Promise<k8s.KubeConfig> {
   const kc = new k8s.KubeConfig();
@@ -54,29 +53,10 @@ async function loadCustomKubeconfig(
 }
 
 /**
- * Load kubeconfig from multipass VM
- */
-async function loadMultipassKubeconfig(): Promise<k8s.KubeConfig> {
-  try {
-    const kubeconfigYaml = await getKubeconfigFromVM();
-    const kc = new k8s.KubeConfig();
-    kc.loadFromString(kubeconfigYaml);
-    return kc;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Failed to load kubeconfig from VM: ${error.message}`);
-    }
-    throw new Error('Failed to load kubeconfig from VM');
-  }
-}
-
-/**
  * Load kubeconfig based on configuration
  */
 export async function loadKubeconfig(): Promise<k8s.KubeConfig> {
-  if (config.configSource === 'multipass') {
-    return loadMultipassKubeconfig();
-  } else if (config.configSource === 'custom') {
+  if (config.configSource === 'custom') {
     if (!config.customKubeconfigPath) {
       throw new Error(
         'Custom kubeconfig path not specified. Set KUBEMCP_KUBECONFIG_PATH environment variable.'

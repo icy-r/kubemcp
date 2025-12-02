@@ -3,9 +3,8 @@
  */
 
 export interface ServerConfig {
-  configSource: 'local' | 'multipass' | 'custom';
+  configSource: 'local' | 'custom';
   customKubeconfigPath?: string;
-  vmName: string;
   defaultNamespace: string;
   logLevel: 'error' | 'warn' | 'info' | 'debug';
   responseFormat: 'json' | 'toon' | 'auto';

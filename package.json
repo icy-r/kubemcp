@@ -1,11 +1,12 @@
 {
-  "name": "kubemcp",
-  "version": "1.2.0",
-  "description": "MCP server for managing MicroK8s clusters via Cursor IDE",
+  "name": "@icy-r/kube-mcp",
+  "version": "2.0.0",
+  "description": "MCP server for managing Kubernetes clusters with AI assistants",
   "main": "dist/index.js",
   "type": "module",
+  "types": "dist/index.d.ts",
   "bin": {
-    "kubemcp": "dist/index.js"
+    "kube-mcp": "dist/index.js"
   },
   "files": [
     "dist",
@@ -14,63 +15,73 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/icy-r/kubemcp.git"
+    "url": "git+https://github.com/icy-r/kube-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/icy-r/kubemcp/issues"
+    "url": "https://github.com/icy-r/kube-mcp/issues"
   },
-  "homepage": "https://github.com/icy-r/kubemcp#readme",
+  "homepage": "https://github.com/icy-r/kube-mcp#readme",
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
-    "audit": "pnpm audit --audit-level=moderate",
-    "audit:fix": "pnpm audit --fix",
-    "security:check": "pnpm audit --audit-level=moderate && pnpm outdated",
-    "prepare": "husky install",
-    "prepublishOnly": "pnpm run build",
-    "version": "pnpm run format && git add -A src",
-    "postversion": "git push && git push --tags"
+    "clean": "rimraf dist",
+    "prepare": "husky",
+    "prepublishOnly": "pnpm run build"
   },
   "keywords": [
     "mcp",
     "kubernetes",
-    "microk8s",
+    "k8s",
     "cursor",
-    "model-context-protocol"
+    "model-context-protocol",
+    "ai",
+    "llm",
+    "devops"
   ],
   "author": "icy-r <asath12882@gmail.com>",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@kubernetes/client-node": "^1.4.0",
-    "@modelcontextprotocol/sdk": "^1.0.4",
-    "@toon-format/toon": "^0.7.0",
-    "execa": "^9.5.2"
+    "@modelcontextprotocol/sdk": "^1.23.0",
+    "@toon-format/toon": "^2.0.1",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.14",
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "@eslint/js": "^9.39.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@types/node": "^22.10.2",
     "@typescript-eslint/eslint-plugin": "^8.18.1",
     "@typescript-eslint/parser": "^8.18.1",
+    "@vitest/coverage-v8": "^2.1.8",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "husky": "^9.1.7",
-    "jest": "^29.7.0",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.4.2",
-    "ts-jest": "^29.2.5",
+    "rimraf": "^6.0.1",
+    "semantic-release": "^25.0.2",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   },
   "engines": {
-    "node": ">=18.0.0"
-  }
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@10.22.0"
 }

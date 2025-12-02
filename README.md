@@ -1,269 +1,227 @@
-# KubeMCP - Kubernetes MCP Server for Cursor/VSCode IDE
+# Kube MCP
 
-A Model Context Protocol (MCP) server for managing Kubernetes clusters directly from Cursor IDE. Manage deployments, pods, services, logs, metrics, and more through AI-powered conversations.
+[![CI](https://github.com/icy-r/kube-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/icy-r/kube-mcp/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/@icy-r/kube-mcp.svg)](https://www.npmjs.com/package/@icy-r/kube-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A production-ready [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for Kubernetes cluster management. This server enables AI assistants to interact with Kubernetes resources through a standardized MCP interface.
 
 ## Features
 
-- **Full K8s Management**: Deployments, Pods, Services, ConfigMaps, Secrets, Namespaces
-- **Advanced Logging**: Severity filtering, time-based queries, log summarization
-- **Real-time Metrics**: CPU/memory usage for pods, nodes, and deployments
-- **Event Monitoring**: Track cluster events and troubleshoot issues
-- **Token Optimization**: TOON format support for 50-60% token reduction
-- **Flexible Config**: Local kubeconfig or dynamic Multipass VM support
+- **9 Consolidated Tools** - Comprehensive Kubernetes management with minimal tool count
+- **Safety Features** - Audit logging, dry-run mode, confirmation safeguards for destructive operations
+- **Token Efficient** - TOON format support for optimized LLM responses
+- **Log Intelligence** - Severity filtering, grep patterns, log summarization
+- **Flexible Config** - Local kubeconfig or custom path support
 
-## Quick Start
-
-### Installation
+## Installation
 
 ```bash
-# Use with npx (no installation)
-npx kubemcp
-
-# Or install globally
-npm install -g kubemcp
+npm install @icy-r/kube-mcp
 ```
 
-### Cursor IDE Setup
+Or run directly with npx:
 
-Add to your Cursor MCP settings (Settings → Features → MCP):
-
-**Using npx (recommended):**
-```json
-{
-  "mcpServers": {
-    "kubemcp": {
-      "command": "npx",
-      "args": ["-y", "kubemcp"],
-      "env": {
-        "KUBEMCP_CONFIG_SOURCE": "local"
-      }
-    }
-  }
-}
-```
-
-**Using global install:**
-```json
-{
-  "mcpServers": {
-    "kubemcp": {
-      "command": "kubemcp",
-      "env": {
-        "KUBEMCP_CONFIG_SOURCE": "local"
-      }
-    }
-  }
-}
-```
-
-**For Multipass/VM mode:**
-```json
-{
-  "mcpServers": {
-    "kubemcp": {
-      "command": "npx",
-      "args": ["-y", "kubemcp"],
-      "env": {
-        "KUBEMCP_CONFIG_SOURCE": "multipass",
-        "KUBEMCP_VM_NAME": "microk8s-vm"
-      }
-    }
-  }
-}
-```
-
-**For Custom Kubeconfig Path (Network/Remote):**
-```json
-{
-  "mcpServers": {
-    "kubemcp": {
-      "command": "npx",
-      "args": ["-y", "kubemcp"],
-      "env": {
-        "KUBEMCP_CONFIG_SOURCE": "custom",
-        "KUBEMCP_KUBECONFIG_PATH": "/path/to/custom/kubeconfig"
-      }
-    }
-  }
-}
-```
-
-**Windows Network Path Example:**
-```json
-{
-  "mcpServers": {
-    "kubemcp": {
-      "command": "npx",
-      "args": ["-y", "kubemcp"],
-      "env": {
-        "KUBEMCP_CONFIG_SOURCE": "custom",
-        "KUBEMCP_KUBECONFIG_PATH": "\\\\server\\share\\kubeconfig"
-      }
-    }
-  }
-}
+```bash
+npx @icy-r/kube-mcp
 ```
 
 ## Configuration
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `KUBEMCP_CONFIG_SOURCE` | `local` | Kubeconfig source: `local`, `multipass`, or `custom` |
-| `KUBEMCP_KUBECONFIG_PATH` | - | Custom kubeconfig path (required if `configSource=custom`) |
-| `KUBEMCP_VM_NAME` | `microk8s-vm` | VM name for multipass mode |
-| `KUBEMCP_DEFAULT_NAMESPACE` | `default` | Default namespace |
-| `KUBEMCP_RESPONSE_FORMAT` | `auto` | Response format: `auto`, `json`, or `toon` |
-| `KUBEMCP_LOG_MAX_LINES` | `100` | Max log lines per request |
-| `KUBEMCP_LOG_DEFAULT_SEVERITY` | `INFO` | Default log severity filter |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `KUBEMCP_CONFIG_SOURCE` | Config source: `local` or `custom` | `local` |
+| `KUBEMCP_KUBECONFIG_PATH` | Custom kubeconfig path | - |
+| `KUBEMCP_DEFAULT_NAMESPACE` | Default namespace | `default` |
+| `KUBEMCP_LOG_LEVEL` | Log level: `error`, `warn`, `info`, `debug` | `info` |
+| `KUBEMCP_RESPONSE_FORMAT` | Response format: `json`, `toon`, `auto` | `auto` |
+| `KUBEMCP_LOG_MAX_LINES` | Max log lines to return | `100` |
+| `KUBEMCP_LOG_MAX_BYTES` | Max log bytes to return | `102400` |
+| `KUBEMCP_LOG_DEFAULT_SEVERITY` | Default log severity filter | - |
 
-### Kubeconfig Modes
+### MCP Configuration
 
-**Local Mode:** Uses `~/.kube/config`
-```env
-KUBEMCP_CONFIG_SOURCE=local
+Add to your MCP client configuration (e.g., Claude Desktop, Cursor):
+
+```json
+{
+  "mcpServers": {
+    "kubernetes": {
+      "command": "npx",
+      "args": ["@icy-r/kube-mcp"],
+      "env": {
+        "KUBEMCP_CONFIG_SOURCE": "local",
+        "KUBEMCP_DEFAULT_NAMESPACE": "default"
+      }
+    }
+  }
+}
 ```
 
-**Multipass Mode:** Fetches from MicroK8s VM dynamically
-```env
-KUBEMCP_CONFIG_SOURCE=multipass
-KUBEMCP_VM_NAME=microk8s-vm
+## Tools
+
+### k8s_deployments
+
+Manage Kubernetes deployments.
+
+**Actions:**
+- `list` - List all deployments in a namespace
+- `get` - Get deployment details
+- `scale` - Scale deployment replicas (requires confirm=true or dryRun=true)
+- `restart` - Perform rolling restart (requires confirm=true or dryRun=true)
+- `get_status` - Get rollout status
+- `get_metrics` - Get aggregated metrics for a deployment
+
+### k8s_pods
+
+Manage Kubernetes pods.
+
+**Actions:**
+- `list` - List pods with optional label selector
+- `get` - Get pod details
+- `delete` - Delete a pod (requires confirm=true or dryRun=true)
+- `get_logs` - Get logs with filtering (severity, grep, time-based)
+- `get_status` - Get detailed pod status
+- `summarize_logs` - Get log summary statistics (90%+ token reduction)
+
+### k8s_services
+
+Manage Kubernetes services.
+
+**Actions:**
+- `list` - List all services in a namespace
+- `get` - Get service details
+- `get_endpoints` - Get endpoints for a service
+
+### k8s_configmaps
+
+Manage Kubernetes ConfigMaps.
+
+**Actions:**
+- `list` - List all ConfigMaps
+- `get` - Get a specific ConfigMap
+- `create` - Create a new ConfigMap
+- `update` - Update an existing ConfigMap (requires confirm=true or dryRun=true)
+- `delete` - Delete a ConfigMap (requires confirm=true or dryRun=true)
+
+### k8s_secrets
+
+Manage Kubernetes Secrets.
+
+**Actions:**
+- `list` - List all Secrets
+- `get` - Get a specific Secret (metadata only, no data)
+- `create` - Create a new Secret
+- `update` - Update an existing Secret (requires confirm=true or dryRun=true)
+- `delete` - Delete a Secret (requires confirm=true or dryRun=true)
+
+### k8s_namespaces
+
+Manage Kubernetes namespaces.
+
+**Actions:**
+- `list` - List all namespaces
+- `get` - Get namespace details
+- `create` - Create a new namespace
+- `delete` - Delete a namespace (requires confirm=true or dryRun=true)
+
+### k8s_metrics
+
+Get Kubernetes resource metrics.
+
+**Actions:**
+- `get_pod_metrics` - Get CPU/Memory metrics for pods
+- `get_node_metrics` - Get CPU/Memory metrics for nodes
+
+### k8s_events
+
+Get Kubernetes cluster events.
+
+**Actions:**
+- `list` - Get cluster events with optional filtering
+- `get_resource` - Get events for a specific resource
+- `get_recent` - Get recent events sorted by timestamp
+
+### k8s_audit
+
+Manage audit logging and safety controls.
+
+**Actions:**
+- `get_status` - Check dry-run mode and session stats
+- `set_dry_run` - Enable/disable dry-run mode globally
+- `get_session_log` - View changes made in this session
+- `get_stats` - Get statistics about operations in this session
+- `clear_session` - Clear session audit log
+- `configure` - Update audit settings
+
+## Safety Features
+
+### Dry-Run Mode
+
+Preview changes without executing:
+
+```json
+{
+  "action": "scale",
+  "name": "my-deployment",
+  "replicas": 5,
+  "dryRun": true
+}
 ```
 
-**Custom Path Mode:** Use custom kubeconfig from any location (network, remote, etc.)
-```env
-KUBEMCP_CONFIG_SOURCE=custom
-KUBEMCP_KUBECONFIG_PATH=/path/to/kubeconfig
+### Confirmation Required
+
+Destructive actions require explicit confirmation:
+
+```json
+{
+  "action": "delete",
+  "name": "my-pod",
+  "confirm": true
+}
 ```
 
-**Examples of Custom Paths:**
-- Linux/Mac: `/mnt/network-share/kubeconfig`
-- Windows UNC: `\\server\share\kubeconfig`
-- Windows Mapped Drive: `Z:\configs\kubeconfig`
-- Remote config: `/remote/cluster/config`
+### Audit Logging
 
-## Available Tools
+All operations are logged for the session:
 
-### Deployments
-- `k8s_list_deployments` - List all deployments
-- `k8s_get_deployment` - Get deployment details
-- `k8s_scale_deployment` - Scale deployment replicas
-- `k8s_restart_deployment` - Rolling restart
-- `k8s_get_deployment_status` - Check rollout status
-
-### Pods
-- `k8s_list_pods` - List pods (supports label selectors)
-- `k8s_get_pod` - Get pod details
-- `k8s_delete_pod` - Delete pod
-- `k8s_get_pod_logs` - Get logs with filtering
-- `k8s_get_pod_status` - Get pod status
-- `k8s_summarize_pod_logs` - Log summary (90% token reduction)
-
-### Services
-- `k8s_list_services` - List services
-- `k8s_get_service` - Get service details
-- `k8s_get_service_endpoints` - Get endpoints
-
-### ConfigMaps & Secrets
-- `k8s_list_configmaps` / `k8s_list_secrets`
-- `k8s_get_configmap` / `k8s_get_secret`
-- `k8s_create_configmap` / `k8s_create_secret`
-- `k8s_update_configmap` / `k8s_update_secret`
-- `k8s_delete_configmap` / `k8s_delete_secret`
-
-### Namespaces
-- `k8s_list_namespaces` - List all namespaces
-- `k8s_get_namespace` - Get namespace details
-- `k8s_create_namespace` - Create namespace
-- `k8s_delete_namespace` - Delete namespace
-
-### Metrics
-- `k8s_get_pod_metrics` - Pod CPU/memory usage
-- `k8s_get_node_metrics` - Node resource usage
-- `k8s_get_deployment_metrics` - Deployment aggregated metrics
-
-### Events
-- `k8s_get_events` - Get cluster events
-- `k8s_get_resource_events` - Events for specific resource
-- `k8s_get_recent_events` - Recent events by timestamp
-
-## Token Optimization
-
-### TOON Format
-Automatically uses [TOON](https://github.com/johannschopplich/toon) for 50-60% token reduction on list operations.
-
-### Log Filtering
-Reduce log tokens by 80-95%:
-- **Severity filtering**: `severityFilter: "ERROR"`
-- **Time filtering**: `sinceSeconds: 3600`
-- **Pattern matching**: `grep: "error|timeout"`
-- **Size limits**: `tail: 100`, `maxBytes: 50000`
-
-### Log Summarization
-Use `k8s_summarize_pod_logs` for 90%+ token reduction - get error counts, patterns, and samples without fetching full logs.
-
-## Troubleshooting
-
-**Cannot connect to cluster:**
-- Local: Verify `~/.kube/config` exists
-- Multipass: Check `multipass list` and VM name
-
-**Metrics not available:**
-```bash
-multipass exec <vm-name> -- sudo microk8s enable metrics-server
+```json
+{
+  "action": "get_session_log"
+}
 ```
 
 ## Development
 
+### Setup
+
 ```bash
-git clone https://github.com/icy-r/kubemcp.git
-cd kubemcp
+git clone https://github.com/icy-r/kube-mcp.git
+cd kube-mcp
 pnpm install
-pnpm run build
-pnpm start
 ```
 
-### Scripts
-- `pnpm run dev` - Development with auto-reload
-- `pnpm run build` - Build TypeScript
-- `pnpm test` - Run tests
-- `pnpm run lint` - Lint code
-- `pnpm run audit` - Run security audit
-- `pnpm run security:check` - Full security check (audit + outdated packages)
+### Commands
 
-## Security
+```bash
+# Build
+pnpm build
 
-### Automated Security Monitoring
+# Run tests
+pnpm test
 
-This project implements multiple layers of security protection:
+# Lint
+pnpm lint
 
-1. **GitHub Dependabot** - Automatically creates PRs for security updates weekly
-2. **GitHub Actions** - Runs security audits on every push and weekly scheduled scans
-3. **Pre-commit Hooks** - Blocks commits with high/critical vulnerabilities
-4. **Manual Audits** - Run `pnpm run audit` anytime to check for vulnerabilities
+# Type check
+pnpm typecheck
 
-### Security Best Practices
-
-- Dependencies are regularly audited for known vulnerabilities
-- Lockfile (`pnpm-lock.yaml`) is committed to ensure consistent builds
-- Security updates are reviewed and applied promptly
-- Only essential dependencies are included to minimize attack surface
-
-### Reporting Security Issues
-
-If you discover a security vulnerability, please email the maintainer directly rather than opening a public issue.
-
-## Requirements
-
-- Node.js >= 18.0.0
-- kubectl configured (local mode)
-- Multipass + MicroK8s (VM mode)
+# Development mode
+pnpm dev
+```
 
 ## License
 
 MIT
-
----
-
-**[Report Issues](https://github.com/icy-r/kubemcp/issues)** | **[NPM Package](https://www.npmjs.com/package/kubemcp)**
